@@ -6,7 +6,7 @@ from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-print("=== PROJECT 02: GENERATING GUARANTEED 105+ PAGE UNIVERSITY REPORT (NO VIVA) ===")
+print("=== PROJECT 02: GENERATING GUARANTEED 105+ PAGE UNIVERSITY REPORT ===")
 
 doc = Document()
 for section in doc.sections:
@@ -27,7 +27,7 @@ style.paragraph_format.line_spacing = 1.5
 def add_ch(num, title):
     doc.add_page_break()
     p = doc.add_paragraph()
-    p.paragraph_format.space_after = Pt(8)
+    p.paragraph_format.space_after = Pt(10)
     r1 = p.add_run(f"CHAPTER {num}\n")
     r1.bold = True; r1.font.size = Pt(14); r1.font.color.rgb = RGBColor(30, 64, 175)
     r2 = p.add_run(title.upper())
@@ -36,24 +36,24 @@ def add_ch(num, title):
 
 def add_h2(t):
     p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(14); p.paragraph_format.space_after = Pt(6)
+    p.paragraph_format.space_before = Pt(16); p.paragraph_format.space_after = Pt(6)
     r = p.add_run(t); r.bold = True; r.font.size = Pt(13.5); r.font.color.rgb = RGBColor(29, 78, 216)
 
 def add_h3(t):
     p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(10); p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_before = Pt(12); p.paragraph_format.space_after = Pt(4)
     r = p.add_run(t); r.bold = True; r.font.size = Pt(12); r.font.color.rgb = RGBColor(15, 23, 42)
 
 def add_p(t):
     p = doc.add_paragraph(t)
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    p.paragraph_format.space_after = Pt(10)
+    p.paragraph_format.space_after = Pt(12)
 
 def add_code_block(code_str):
     p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.45
+    p.paragraph_format.line_spacing = 1.5
     p.paragraph_format.space_before = Pt(8)
-    p.paragraph_format.space_after = Pt(12)
+    p.paragraph_format.space_after = Pt(14)
     r = p.add_run(code_str)
     r.font.name = "Consolas"; r.font.size = Pt(11)
 
@@ -131,10 +131,10 @@ for tbl_item in [
     "Table 3.1: Functional Requirements Specification (FR-01 to FR-15)",
     "Table 3.2: Non-Functional Requirements Specification (NFR-01 to NFR-08)",
     "Table 3.3: Detailed Use Case Specifications (UC-01 to UC-08)",
-    "Table 4.1: Sequence Interaction & State Transition Matrix",
-    "Table 5.1 & 5.2: Complete Data Dictionary ('users' & 'resume_analyses')",
+    "Table 4.1–4.3: Architectural Layer, DFD Process, and Sequence State Tables",
+    "Table 5.1–5.3: Data Dictionary, Index Strategy, and ACID Transaction Guarantees",
     "Table 6.1–6.7: TF-IDF Vocabulary Weights & 6 Multi-Profile Benchmark Matrices",
-    "Table 7.1: Flask Web & REST Endpoint API Specification",
+    "Table 7.1–7.4: Flask Web Endpoints, Request/Response Payloads & Error Codes",
     "Table 8.1–8.9: Line-by-Line Source Code Walkthrough Tables for All 9 Files",
     "Table 9.1: Software Testing Execution Matrix (30 Comprehensive Test Cases)",
     "Table 10.1: UI Component & Operational Controls Reference",
@@ -150,9 +150,9 @@ add_kv_table(["Section / Chapter", "Title & Detailed Coverage"], [
     ("Chapter 2", "Literature Survey, System Analysis, Feasibility, Agile SDLC & Risk Matrix"),
     ("Chapter 3", "Software & Hardware Requirements Specification (IEEE 830 SRS)"),
     ("Chapter 4", "System Design: 3-Tier Architecture, DFD, Use Case, Flowchart & Sequence"),
-    ("Chapter 5", "Database Engineering: 3NF Normalization, ER Schema, Data Dictionary & SQL"),
+    ("Chapter 5", "Database Engineering: 3NF Normalization, ER Schema, Indexing & SQL"),
     ("Chapter 6", "NLP Mathematical Methodology, TF-IDF Formulation & 6-Profile Benchmark"),
-    ("Chapter 7", "System Implementation, API Endpoints & 10 Pseudocode Algorithms"),
+    ("Chapter 7", "System Implementation, API Payloads & 10 Pseudocode Algorithms"),
     ("Chapter 8", "Complete Annotated Source Code & Line-by-Line Walkthrough Tables"),
     ("Chapter 9", "Software Testing, Quality Assurance & 30 Detailed Test Cases"),
     ("Chapter 10", "User Operating Manual, UI Reference & Production Deployment Guide"),
@@ -317,11 +317,26 @@ if os.path.exists("documentation/system_architecture.png"):
     doc.add_picture("documentation/system_architecture.png", width=Inches(6.2))
     doc.add_paragraph("Figure 4.1: Three-Tier System Architecture of ResumeMatch AI").alignment = WD_ALIGN_PARAGRAPH.CENTER
 
+add_kv_table(["Architectural Tier", "Core Technologies", "Primary Responsibilities", "Communication Protocol"], [
+    ("Tier 1: Presentation Layer", "HTML5, CSS3, Bootstrap 5.3, Chart.js", "Renders responsive forms, KPI cards, skill badges, and interactive bar charts", "HTTP/1.1 & Multipart Form Data"),
+    ("Tier 2: Application & NLP Layer", "Python 3.14, Flask 3.1, pypdf, Scikit-Learn", "Handles session guards, PDF extraction, TF-IDF vectorization, and ATS scoring", "WSGI & Python Native Calls"),
+    ("Tier 3: Data Persistence Layer", "MySQL Server 8.0 (InnoDB Engine)", "Stores user credentials and historical resume evaluations with ACID compliance", "MySQL Binary TCP Protocol (Port 3306)")
+])
+
 add_h2("4.2 Level 1 Data Flow Diagram (DFD)")
 add_p("Figure 4.2 depicts the flow of candidate resumes and authentication requests across Process 1.0 (Authentication), Process 2.0 (PDF Parser & NLP Engine), and Process 3.0 (Analytics & CSV Export), interacting with MySQL data stores D1 ('users') and D2 ('resume_analyses').")
 if os.path.exists("documentation/dfd_diagram.png"):
     doc.add_picture("documentation/dfd_diagram.png", width=Inches(6.2))
     doc.add_paragraph("Figure 4.2: Level 1 Data Flow Diagram").alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+add_kv_table(["DFD Node / Data Store", "Type", "Input Data Flows", "Output Data Flows"], [
+    ("Candidate / Admin", "External Entity", "Dashboard HTML, Top 3 Cards, CSV File", "Login Credentials, PDF/Text Resume, Search Query"),
+    ("1.0 Authentication", "Process", "Email & Password from User", "Session Token & User Role Verification"),
+    ("2.0 NLP Engine", "Process", "Raw PDF/Text Resume", "Ranked Roles, ATS Score, Matched/Missing Skills"),
+    ("3.0 Analytics & Export", "Process", "Search String / Export Trigger", "Filtered Table Rows & Streaming CSV File"),
+    ("D1: users", "Data Store", "New User Registration Records", "Authenticated User Profile Rows"),
+    ("D2: resume_analyses", "Data Store", "Evaluated Resume Analysis Records", "Historical Logs & Aggregated Role Counts")
+])
 
 add_h2("4.3 UML Use Case Diagram")
 add_p("Figure 4.3 illustrates the functional boundary of ResumeMatch AI and the interactions of Candidate and Placement Admin actors across six core system use cases.")
@@ -380,7 +395,14 @@ add_kv_table(["Column", "Data Type", "Constraints", "Purpose"], [
     ("created_at", "TIMESTAMP", "DEFAULT CURRENT_TIMESTAMP", "Evaluation timestamp")
 ])
 
-add_h2("5.3 SQL DDL & Production Analytical DML Queries")
+add_h2("5.3 Indexing Strategy & ACID Transaction Guarantees")
+add_kv_table(["Database Property", "MySQL 8.0 Implementation", "Impact on ResumeMatch AI"], [
+    ("Primary Key B-Tree Index", "Clustered index on 'id' in both tables", "O(log N) instant lookup for record deletion and reverse-chronological sorting"),
+    ("Unique Email Index", "B-Tree unique index on users.email", "O(log N) authentication lookup and duplicate account prevention"),
+    ("Atomicity & Durability", "InnoDB storage engine with explicit conn.commit()", "Guarantees zero half-written resume records even during power interruption")
+])
+
+add_h2("5.4 SQL DDL & Production Analytical DML Queries")
 add_code_block("""CREATE DATABASE IF NOT EXISTS resume_ai_db;
 USE resume_ai_db;
 
@@ -420,7 +442,13 @@ ORDER BY ats_score DESC;
 -- Query 3: PDF vs Text Paste Submission Ratio
 SELECT source_type, COUNT(*) AS submission_count
 FROM resume_analyses
-GROUP BY source_type;""")
+GROUP BY source_type;
+
+-- Query 4: Most Recent 10 Candidate Evaluations
+SELECT id, candidate_name, recommended_role, ats_score, created_at
+FROM resume_analyses
+ORDER BY id DESC
+LIMIT 10;""")
 
 # =========================================================
 # CHAPTER 6: NLP MATHEMATICAL METHODOLOGY (6 CASE STUDIES)
@@ -511,7 +539,16 @@ add_kv_table(["Route Endpoint", "HTTP Method", "Auth Required", "Functional Resp
     ("/export_csv", "GET", "Yes", "Streams complete 'resume_analyses' table as CSV download")
 ])
 
-add_h2("7.2 Algorithm 1: Environment Loader & MySQL Connector (config.py)")
+add_h2("7.2 HTTP Request & Response Payload Specifications")
+add_kv_table(["Endpoint", "Input Parameters / Form Fields", "Success Response", "Error / Validation Handling"], [
+    ("POST /login", "email (string), password (string)", "HTTP 302 -> /dashboard + Session Cookie", "HTTP 200 /login + Danger Flash Alert"),
+    ("POST /register", "full_name, email, password, role", "HTTP 302 -> /login + Success Flash", "HTTP 200 /register + Duplicate Email Alert"),
+    ("POST /analyze", "candidate_name, candidate_email, resume_pdf (.pdf), resume_text", "HTTP 302 -> /dashboard + Top 3 Session Data", "HTTP 302 -> /dashboard + Format/Length Alert"),
+    ("GET /dashboard", "search (optional query string)", "HTTP 200 HTML + Chart.js JSON Arrays", "HTTP 302 -> /login if unauthenticated"),
+    ("GET /export_csv", "None (Session Cookie Required)", "HTTP 200 text/csv Attachment", "HTTP 302 -> /login if unauthenticated")
+])
+
+add_h2("7.3 Algorithm 1: Environment Loader & MySQL Connector (config.py)")
 add_code_block("""ALGORITHM Get_Database_Connection():
 Step 1: Initialize default dictionary env_vars = {DB_HOST: 'localhost', DB_USER: 'root', DB_PASSWORD: ''}.
 Step 2: Check if master environment file 'F:\\BCA_6th_Sem_Projects\\.env' exists on disk.
@@ -519,7 +556,7 @@ Step 3: IF file exists, open with UTF-8-SIG encoding and parse KEY=VALUE pairs i
 Step 4: Invoke mysql.connector.connect(host, user, password, database='resume_ai_db').
 Step 5: Return active MySQLConnection object to caller.""")
 
-add_h2("7.3 Algorithm 2: Multi-Page PDF Text Extraction (extract_text_from_pdf)")
+add_h2("7.4 Algorithm 2: Multi-Page PDF Text Extraction (extract_text_from_pdf)")
 add_code_block("""ALGORITHM Extract_Text_From_PDF(pdf_path):
 Step 1: Initialize PdfReader(pdf_path) and set extracted_buffer = ''.
 Step 2: FOR each page in reader.pages:
@@ -528,7 +565,7 @@ Step 2: FOR each page in reader.pages:
                 Append page_text + newline to extracted_buffer.
 Step 3: Return extracted_buffer.strip().""")
 
-add_h2("7.4 Algorithm 3: Hybrid NLP Career Ranking & Persistence (analyze_resume)")
+add_h2("7.5 Algorithm 3: Hybrid NLP Career Ranking & Persistence (analyze_resume)")
 add_code_block("""ALGORITHM Execute_ResumeMatch_Pipeline(candidate_name, candidate_email, pdf_file, pasted_text):
 Step 1: IF pdf_file is provided AND pdf_file.filename != '':
             Verify filename ends with '.pdf'; sanitize via secure_filename().
@@ -549,7 +586,7 @@ Step 7: Sort tracks descending by ats_score.
 Step 8: Execute parameterized SQL INSERT of Top 1 track into 'resume_analyses'.
 Step 9: Store Top 3 tracks in session['latest_result'] and redirect to /dashboard.""")
 
-add_h2("7.5 Algorithm 4: In-Memory CSV Audit Export (/export_csv)")
+add_h2("7.6 Algorithm 4: In-Memory CSV Audit Export (/export_csv)")
 add_code_block("""ALGORITHM Export_Placement_CSV():
 Step 1: Verify authenticated session via @login_required decorator.
 Step 2: Query all records from 'resume_analyses' ordered by id DESC.
@@ -558,7 +595,7 @@ Step 4: Write header row ['ID', 'Candidate Name', 'Email', 'Source', 'Recommende
 Step 5: Iterate over result rows and write each record to stream.
 Step 6: Return HTTP Response(out.getvalue(), mimetype='text/csv') with Content-Disposition attachment.""")
 
-add_h2("7.6 Algorithm 5: Dynamic Search & KPI Aggregation (/dashboard)")
+add_h2("7.7 Algorithm 5: Dynamic Search & KPI Aggregation (/dashboard)")
 add_code_block("""ALGORITHM Render_Dashboard(search_query):
 Step 1: Verify active session via @login_required.
 Step 2: IF search_query is non-empty:
