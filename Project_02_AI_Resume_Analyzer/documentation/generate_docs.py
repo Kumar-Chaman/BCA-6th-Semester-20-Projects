@@ -1,4 +1,6 @@
-﻿import os
+﻿import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from docx import Document
@@ -437,3 +439,4 @@ for q, a in viva_40:
 rep_path = os.path.join("documentation", "Project_02_Complete_Report.docx")
 doc.save(rep_path)
 print(f"[2/2] Upgraded Project 02 Report saved: {rep_path}")
+
