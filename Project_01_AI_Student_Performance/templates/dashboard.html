@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AI Student Performance Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 shadow-sm">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">🎓 EduPredict AI <span class="badge bg-primary ms-1">ML v1.0</span></a>
+        <div class="ms-auto d-flex align-items-center text-white">
+            <span class="me-3 small">Welcome, <strong>{{ session.user_name }}</strong> ({{ session.user_role }})</span>
+            <a href="{{ url_for('export_csv') }}" class="btn btn-outline-info btn-sm me-2">⬇ Export CSV</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 py-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- KPI SUMMARY CARDS -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card kpi-card bg-white p-3 border-start border-4 border-primary">
+                    <div class="text-muted small fw-bold">TOTAL ANALYZED STUDENTS</div>
+                    <h2 class="fw-bold text-primary mb-0">{{ stats.total }}</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card kpi-card bg-white p-3 border-start border-4 border-info">
+                    <div class="text-muted small fw-bold">AVERAGE PREDICTED SCORE</div>
+                    <h2 class="fw-bold text-info mb-0">{{ stats.avg_score }}%</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card kpi-card bg-white p-3 border-start border-4 border-success">
+                    <div class="text-muted small fw-bold">SAFE STUDENTS</div>
+                    <h2 class="fw-bold text-success mb-0">{{ stats.safe }}</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card kpi-card bg-white p-3 border-start border-4 border-danger">
+                    <div class="text-muted small fw-bold">AT-RISK / CRITICAL</div>
+                    <h2 class="fw-bold text-danger mb-0">{{ stats.at_risk + stats.critical }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- LEFT: AI PREDICTION INPUT FORM -->
+            <div class="col-lg-5">
+                <div class="card card-custom bg-white p-4">
+                    <h5 class="fw-bold mb-3 text-dark">🤖 New Student AI Prediction</h5>
+                    <form method="POST" action="{{ url_for('predict') }}">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Roll Number</label>
+                                <input type="text" name="roll_no" class="form-control form-control-sm" placeholder="BCA-2301" required>
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-semibold">Student Full Name</label>
+                                <input type="text" name="student_name" class="form-control form-control-sm" placeholder="Ankit Verma" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Attendance (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="attendance" class="form-control form-control-sm" placeholder="85.0" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Daily Study Hours</label>
+                                <input type="number" step="0.1" min="0" max="18" name="study_hours" class="form-control form-control-sm" placeholder="4.5" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Prev Score (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="previous_score" class="form-control form-control-sm" placeholder="76.0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Assignment (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="assignment_score" class="form-control form-control-sm" placeholder="82.0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Sleep (Hrs/Day)</label>
+                                <input type="number" step="0.1" min="1" max="16" name="sleep_hours" class="form-control form-control-sm" placeholder="7.0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold">⚡ Predict & Save to MySQL</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RIGHT: AI ANALYTICS CHART -->
+            <div class="col-lg-7">
+                <div class="card card-custom bg-white p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold mb-0">📊 Student Risk Distribution Analytics</h5>
+                        <span class="badge bg-secondary">Random Forest Engine (93% Clf Acc)</span>
+                    </div>
+                    <div style="max-height: 230px; display: flex; justify-content: center;">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM: SEARCH, FILTER & RECORDS TABLE -->
+        <div class="card card-custom bg-white p-4 mt-4">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-5">
+                    <h5 class="fw-bold mb-0">📋 Prediction History Records (MySQL)</h5>
+                </div>
+                <div class="col-md-7">
+                    <form method="GET" action="{{ url_for('dashboard') }}" class="d-flex gap-2 justify-content-md-end">
+                        <input type="text" name="search" value="{{ search_q }}" class="form-control form-control-sm w-50" placeholder="Search Roll No or Name...">
+                        <select name="risk" class="form-select form-select-sm w-25">
+                            <option value="">All Status</option>
+                            <option value="Safe" {% if risk_filter == 'Safe' %}selected{% endif %}>Safe</option>
+                            <option value="At-Risk" {% if risk_filter == 'At-Risk' %}selected{% endif %}>At-Risk</option>
+                            <option value="Critical" {% if risk_filter == 'Critical' %}selected{% endif %}>Critical</option>
+                        </select>
+                        <button type="submit" class="btn btn-dark btn-sm">Filter</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Attendance</th>
+                            <th>Study Hrs</th>
+                            <th>Prev Score</th>
+                            <th>Assignment</th>
+                            <th>Predicted Final</th>
+                            <th>AI Risk Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td class="fw-semibold">{{ s.roll_no }}</td>
+                            <td>{{ s.student_name }}</td>
+                            <td>{{ s.attendance }}%</td>
+                            <td>{{ s.study_hours }}h</td>
+                            <td>{{ s.previous_score }}%</td>
+                            <td>{{ s.assignment_score }}%</td>
+                            <td class="fw-bold text-primary">{{ s.predicted_final_score }}%</td>
+                            <td>
+                                {% if s.risk_status == 'Safe' %}
+                                    <span class="badge bg-success">Safe</span>
+                                {% elif s.risk_status == 'At-Risk' %}
+                                    <span class="badge bg-warning text-dark">At-Risk</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Critical</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('delete_record', record_id=s.id) }}" onsubmit="return confirm('Delete this record?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-3">Abhi koi prediction record nahi hai. Upar form se pehla student predict karein!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Safe', 'At-Risk', 'Critical'],
+                datasets: [{
+                    data: [{{ stats.safe }}, {{ stats.at_risk }}, {{ stats.critical }}],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
